@@ -1,24 +1,20 @@
-# build output
+# 构建输出
 dist/
-# generated types
 .astro/
 
-# dependencies
+# 依赖
 node_modules/
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# 本地环境变量
+.env.local
 
+# 原始数据和生成图表（可能含敏感信息）
+data/*.json
+public/charts/*.png
+public/charts/*.svg
 
-# environment variables
-.env
-.env.production
+# 日志
+*.log
 
-# macOS-specific files
+# 操作系统文件
 .DS_Store
-
-# jetbrains setting folder
-.idea/

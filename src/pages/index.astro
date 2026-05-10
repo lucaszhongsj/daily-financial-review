@@ -1,17 +1,55 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
 
+const allReviews = await getCollection('reviews');
+const publishedReviews = allReviews.filter(r => !r.data.draft);
+const sortedReviews = publishedReviews.sort((a, b) =>
+  b.data.date.localeCompare(a.data.date)
+);
+const latest = sortedReviews[0];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="每日理财复盘">
+  <h1 class="text-3xl font-bold mb-8 text-slate-900">每日理财复盘</h1>
+
+  {
+    latest && (
+      <section class="mb-10">
+        <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+          最新复盘
+        </h2>
+        <a
+          href={`/review/${latest.id}`}
+          class="block bg-white rounded-lg shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div class="text-lg font-semibold text-slate-900">{latest.data.title}</div>
+          <div class="text-sm text-slate-500 mt-1">{latest.data.date}</div>
+        </a>
+      </section>
+    )
+  }
+
+  <section>
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+      历史复盘
+    </h2>
+    {sortedReviews.length === 0 ? (
+      <p class="text-slate-500">暂无已发布的复盘记录。</p>
+    ) : (
+      <ul class="space-y-3">
+        {sortedReviews.map(review => (
+          <li>
+            <a
+              href={`/review/${review.id}`}
+              class="flex items-center justify-between bg-white rounded-lg shadow-sm border border-slate-200 px-5 py-4 hover:shadow-md transition-shadow"
+            >
+              <span class="font-medium text-slate-800">{review.data.title}</span>
+              <span class="text-sm text-slate-500">{review.data.date}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</Layout>

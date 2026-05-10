@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const reviews = await getCollection('reviews');
+  return reviews
+    .filter(r => !r.data.draft)
+    .map(review => ({
+      params: { id: review.id },
+      props: { review },
+    }));
+}
+
+const { review } = Astro.props;
+const { Content } = await render(review);
+---
+
+<Layout title={review.data.title}>
+  <a href="/" class="text-sm text-slate-500 hover:text-slate-800 mb-4 inline-block">
+    ← 返回首页
+  </a>
+  <article class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 md:p-8">
+    <h1 class="text-2xl font-bold text-slate-900 mb-2">{review.data.title}</h1>
+    <div class="text-sm text-slate-500 mb-6">{review.data.date}</div>
+    <div class="prose prose-slate max-w-none">
+      <Content />
+    </div>
+  </article>
+</Layout>
