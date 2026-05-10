@@ -225,7 +225,7 @@ def main():
         print(f"{date_str} 非交易日，跳过")
         return
 
-    positions_file = "data/positions.json"
+    positions_file = "config/positions.json"
     positions = load_positions(positions_file)
 
     index_codes = ["sh000001", "sz399001", "sz399006", "sh000688"]

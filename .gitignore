@@ -13,6 +13,9 @@ data/*.json
 public/charts/*.png
 public/charts/*.svg
 
+# 持仓配置（敏感信息）
+config/positions.json
+
 # 日志
 *.log
 
