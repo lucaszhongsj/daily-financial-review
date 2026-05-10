@@ -1,39 +1,27 @@
 #!/usr/bin/env python3
 """
-拉取 A 股市场数据，计算持仓盈亏。
+拉取 A 股指数和基金净值数据，计算持仓盈亏。
 用法：python fetch_market_data.py [--date YYYY-MM-DD]
+不传 --date 时自动判断：21:30 前分析昨日，21:30 后分析今日。
 """
 import argparse
 import json
 import os
+import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import requests
 
 
-def parse_positions(env_value: str) -> list[dict]:
-    """解析持仓字符串，格式：代码:名称:数量:成本价,代码:名称:数量:成本价"""
-    positions = []
-    if not env_value:
-        return positions
-    for item in env_value.split(","):
-        item = item.strip()
-        if not item:
-            continue
-        parts = item.split(":")
-        if len(parts) != 4:
-            print(f"持仓格式错误，跳过：{item}", file=sys.stderr)
-            continue
-        code, name, quantity, cost = parts
-        positions.append({
-            "code": code.strip(),
-            "name": name.strip(),
-            "quantity": int(quantity.strip()),
-            "cost": float(cost.strip()),
-        })
-    return positions
+def load_positions(positions_file: str) -> dict:
+    """读取持仓 JSON"""
+    path = Path(positions_file)
+    if not path.is_absolute():
+        path = Path(__file__).parent.parent / path
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def is_trading_day(date_str: str) -> bool:
@@ -42,13 +30,33 @@ def is_trading_day(date_str: str) -> bool:
     return dt.weekday() < 5
 
 
-def fetch_sina_data(codes: list[str], date_str: str) -> list[dict]:
-    """通过新浪接口批量拉取行情数据"""
+def get_target_date(now=None) -> str:
+    """
+    根据当前时间判断应分析的目标日期。
+    - 今天工作日且已过 21:30 → 分析今天
+    - 否则 → 分析最近一个已结束交易日
+    """
+    if now is None:
+        now = datetime.now()
+    if now.weekday() < 5 and (now.hour > 21 or (now.hour == 21 and now.minute >= 30)):
+        return now.strftime("%Y-%m-%d")
+    target = now.date() - timedelta(days=1)
+    while target.weekday() >= 5:
+        target -= timedelta(days=1)
+    return target.strftime("%Y-%m-%d")
+
+
+def fetch_index_data(index_codes: list[str], date_str: str) -> list[dict]:
+    """通过新浪接口拉取指数数据"""
     results = []
-    if not codes:
-        return results
+    name_map = {
+        "sh000001": "上证指数",
+        "sz399001": "深证成指",
+        "sz399006": "创业板指",
+        "sh000688": "科创50",
+    }
     try:
-        url = f"https://hq.sinajs.cn/list={','.join(codes)}"
+        url = f"https://hq.sinajs.cn/list={','.join(index_codes)}"
         headers = {"Referer": "https://finance.sina.com.cn"}
         r = requests.get(url, headers=headers, timeout=10)
         r.encoding = "gb2312"
@@ -70,7 +78,7 @@ def fetch_sina_data(codes: list[str], date_str: str) -> list[dict]:
             change_pct = round((close - prev_close) / prev_close * 100, 2) if prev_close else 0.0
             results.append({
                 "code": code,
-                "name": name,
+                "name": name_map.get(code, name),
                 "date": date_str,
                 "open": open_price,
                 "close": close,
@@ -79,43 +87,140 @@ def fetch_sina_data(codes: list[str], date_str: str) -> list[dict]:
                 "change_pct": change_pct,
             })
     except Exception as e:
-        print(f"拉取行情数据失败：{e}", file=sys.stderr)
+        print(f"拉取指数数据失败：{e}", file=sys.stderr)
     return results
 
 
-def calculate_position_pnl(positions: list[dict], stock_data: list[dict]) -> tuple[list[dict], float]:
-    """计算持仓盈亏"""
-    price_map = {s["code"]: s for s in stock_data}
+def fetch_fund_data_ttjj(code: str) -> dict | None:
+    """天天基金接口"""
+    try:
+        url = f"https://fundgz.1234567.com.cn/js/{code}.js"
+        r = requests.get(url, timeout=10)
+        text = r.text
+        match = re.search(r'jsonpgz\((.*?)\);', text)
+        if not match or not match.group(1).strip():
+            return None
+        data = json.loads(match.group(1))
+        return {
+            "code": code,
+            "name": data.get("name", code),
+            "nav_date": data.get("jzrq"),
+            "nav": float(data.get("dwjz", 0)) if data.get("dwjz") else None,
+            "estimate_nav": float(data.get("gsz", 0)) if data.get("gsz") else None,
+            "change_pct": float(data.get("gszzl", 0)) if data.get("gszzl") else None,
+        }
+    except Exception:
+        return None
+
+
+def fetch_fund_data_em(code: str) -> dict | None:
+    """东方财富接口（QDII fallback）"""
+    try:
+        url = f"https://fund.eastmoney.com/pingzhongdata/{code}.js"
+        r = requests.get(url, timeout=10)
+        text = r.text
+        match = re.search(r'Data_netWorthTrend = (\[.*?\]);', text, re.DOTALL)
+        if not match:
+            return None
+        data = json.loads(match.group(1))
+        if len(data) < 2:
+            return None
+        latest = data[-1]
+        prev = data[-2]
+        nav = latest.get("y")
+        prev_nav = prev.get("y")
+        ts = latest.get("x")
+        nav_date = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d") if ts else None
+        change_pct = round((nav - prev_nav) / prev_nav * 100, 2) if prev_nav else None
+        # 提取基金名称
+        name_match = re.search(r'fS_name = "(.*?)";', text)
+        name = name_match.group(1) if name_match else code
+        return {
+            "code": code,
+            "name": name,
+            "nav_date": nav_date,
+            "nav": nav,
+            "change_pct": change_pct,
+        }
+    except Exception:
+        return None
+
+
+def fetch_fund_data(fund_codes: list[str]) -> list[dict]:
+    """获取基金净值，优先天天基金，QDII fallback 东方财富"""
+    results = []
+    for code in fund_codes:
+        data = fetch_fund_data_ttjj(code)
+        if data is None:
+            data = fetch_fund_data_em(code)
+        if data is None:
+            print(f"拉取基金 {code} 失败", file=sys.stderr)
+            continue
+        results.append(data)
+    return results
+
+
+def calculate_fund_pnl(positions: dict, fund_data: list[dict]) -> tuple[list[dict], float | None]:
+    """计算基金持仓盈亏"""
+    nav_map = {f["code"]: f for f in fund_data}
     results = []
     total_cost = 0.0
     total_value = 0.0
-    for p in positions:
-        sd = price_map.get(p["code"])
-        if not sd:
+
+    for code, info in positions.items():
+        fd = nav_map.get(code)
+        if not fd or fd.get("nav") is None:
             continue
-        cost_value = p["quantity"] * p["cost"]
-        market_value = p["quantity"] * sd["close"]
-        pnl_pct = (sd["close"] - p["cost"]) / p["cost"] * 100 if p["cost"] else 0
-        total_cost += cost_value
+
+        trades = info.get("trades", [])
+        is_qdii = "QDII" in info.get("name", "")
+
+        if not trades:
+            results.append({
+                "code": code,
+                "name": info.get("name", fd.get("name", code)),
+                "nav": fd["nav"],
+                "nav_date": fd.get("nav_date"),
+                "change_pct": fd.get("change_pct"),
+                "avg_cost": None,
+                "pnl_pct": None,
+                "shares": None,
+                "is_qdii": is_qdii,
+            })
+            continue
+
+        total_shares = sum(t["shares"] for t in trades)
+        total_invest = sum(t["shares"] * t["nav"] for t in trades)
+        avg_cost = total_invest / total_shares if total_shares > 0 else 0
+
+        market_value = total_shares * fd["nav"]
+        pnl_pct = round((fd["nav"] - avg_cost) / avg_cost * 100, 2) if avg_cost > 0 else 0
+
+        total_cost += total_invest
         total_value += market_value
+
         results.append({
-            "code": p["code"],
-            "name": p["name"],
-            "close": sd["close"],
-            "change_pct": sd["change_pct"],
-            "cost": p["cost"],
-            "pnl_pct": round(pnl_pct, 2),
+            "code": code,
+            "name": info.get("name", fd.get("name", code)),
+            "nav": fd["nav"],
+            "nav_date": fd.get("nav_date"),
+            "change_pct": fd.get("change_pct"),
+            "avg_cost": round(avg_cost, 4),
+            "pnl_pct": pnl_pct,
+            "shares": round(total_shares, 2),
+            "is_qdii": is_qdii,
         })
-    total_pnl_pct = round((total_value - total_cost) / total_cost * 100, 2) if total_cost else 0
+
+    total_pnl_pct = round((total_value - total_cost) / total_cost * 100, 2) if total_cost > 0 else None
     return results, total_pnl_pct
 
 
 def main():
-    parser = argparse.ArgumentParser(description="拉取 A 股市场数据")
-    parser.add_argument("--date", type=str, default=datetime.now().strftime("%Y-%m-%d"),
-                        help="指定日期，格式 YYYY-MM-DD")
+    parser = argparse.ArgumentParser(description="拉取市场数据")
+    parser.add_argument("--date", type=str, help="指定日期 YYYY-MM-DD，默认自动判断")
     args = parser.parse_args()
-    date_str = args.date
+
+    date_str = args.date or get_target_date()
 
     if not is_trading_day(date_str):
         print(f"{date_str} 非交易日，跳过")
@@ -131,38 +236,24 @@ def main():
                     key, value = line.split("=", 1)
                     os.environ.setdefault(key.strip(), value.strip())
 
-    positions = parse_positions(os.environ.get("POSITIONS", ""))
+    positions_file = os.environ.get("POSITIONS_FILE", "data/positions.json")
+    positions = load_positions(positions_file)
+
     indices_env = os.environ.get("INDICES", "sh000001,sz399001,sz399006,sh000688")
     index_codes = [c.strip() for c in indices_env.split(",") if c.strip()]
 
-    # 个股代码加交易所前缀
-    stock_codes = []
-    for p in positions:
-        code = p["code"]
-        prefix = "sh" if code.startswith("6") else "sz"
-        stock_codes.append(f"{prefix}{code}")
+    fund_codes = list(positions.keys())
 
-    # 统一拉取
-    all_codes = index_codes + stock_codes
-    all_data = fetch_sina_data(all_codes, date_str)
+    index_data = fetch_index_data(index_codes, date_str)
+    fund_data = fetch_fund_data(fund_codes)
+    fund_pnl, total_pnl_pct = calculate_fund_pnl(positions, fund_data)
 
-    index_data = [d for d in all_data if d["code"] in index_codes]
-    stock_data = [d for d in all_data if d["code"] in stock_codes]
-
-    # 个股 code 去掉前缀以便匹配持仓
-    for s in stock_data:
-        s["code"] = s["code"].replace("sh", "").replace("sz", "")
-
-    position_pnl, total_pnl_pct = calculate_position_pnl(positions, stock_data)
-
-    # 保存数据
     data_dir = Path(__file__).parent.parent / "data"
     data_dir.mkdir(exist_ok=True)
     output = {
         "date": date_str,
         "indices": index_data,
-        "stocks": stock_data,
-        "positions": position_pnl,
+        "funds": fund_pnl,
         "total_pnl_pct": total_pnl_pct,
     }
     output_file = data_dir / f"{date_str}.json"

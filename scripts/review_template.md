@@ -8,7 +8,7 @@ draft: true
 
 <!-- INDICES_PLACEHOLDER -->
 
-## 持仓概览
+## 基金持仓概览
 
 <!-- POSITIONS_PLACEHOLDER -->
 

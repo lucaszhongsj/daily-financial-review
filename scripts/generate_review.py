@@ -6,8 +6,19 @@
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+
+
+def get_target_date(now=None) -> str:
+    if now is None:
+        now = datetime.now()
+    if now.weekday() < 5 and (now.hour > 21 or (now.hour == 21 and now.minute >= 30)):
+        return now.strftime("%Y-%m-%d")
+    target = now.date() - timedelta(days=1)
+    while target.weekday() >= 5:
+        target -= timedelta(days=1)
+    return target.strftime("%Y-%m-%d")
 
 
 def load_data(date_str: str) -> dict:
@@ -28,15 +39,24 @@ def format_indices(indices: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def format_positions(positions: list[dict], total_pnl_pct: float) -> str:
-    if not positions:
-        return "暂无持仓数据。"
-    lines = ["| 标的 | 收盘价 | 当日涨跌 | 持仓盈亏 |", "|------|--------|----------|----------|"]
-    for p in positions:
-        change = f"{p['change_pct']:+.2f}%"
-        pnl = f"{p['pnl_pct']:+.2f}%"
-        lines.append(f"| {p['name']} | {p['close']:.2f} | {change} | {pnl} |")
-    lines.append(f"\n**整体持仓盈亏：{total_pnl_pct:+.2f}%**")
+def format_funds(funds: list[dict], total_pnl_pct: float | None) -> str:
+    if not funds:
+        return "暂无基金数据。"
+    lines = ["| 基金 | 净值 | 净值日期 | 当日涨跌 | 持仓盈亏 |", "|------|------|----------|----------|----------|"]
+    for f in funds:
+        name = f["name"]
+        if f.get("is_qdii"):
+            name += " (QDII)"
+        nav = f"{f['nav']:.4f}" if f.get("nav") is not None else "-"
+        nav_date = f.get("nav_date", "-")
+        change = f"{f['change_pct']:+.2f}%" if f.get("change_pct") is not None else "-"
+        if f.get("pnl_pct") is not None:
+            pnl = f"{f['pnl_pct']:+.2f}%"
+        else:
+            pnl = "-"
+        lines.append(f"| {name} | {nav} | {nav_date} | {change} | {pnl} |")
+    if total_pnl_pct is not None:
+        lines.append(f"\n**整体持仓盈亏：{total_pnl_pct:+.2f}%**")
     return "\n".join(lines)
 
 
@@ -51,14 +71,14 @@ def generate_review(data: dict) -> str:
     template = template.replace("<!-- DATE_PLACEHOLDER -->", f'"{date_str}"')
     template = template.replace("<!-- TITLE_PLACEHOLDER -->", title)
     template = template.replace("<!-- INDICES_PLACEHOLDER -->", format_indices(data.get("indices", [])))
-    template = template.replace("<!-- POSITIONS_PLACEHOLDER -->", format_positions(data.get("positions", []), data.get("total_pnl_pct", 0)))
+    template = template.replace("<!-- POSITIONS_PLACEHOLDER -->", format_funds(data.get("funds", []), data.get("total_pnl_pct")))
 
     return template
 
 
 def main():
     parser = argparse.ArgumentParser(description="生成复盘 Markdown 草稿")
-    parser.add_argument("--date", type=str, default=datetime.now().strftime("%Y-%m-%d"),
+    parser.add_argument("--date", type=str, default=get_target_date(),
                         help="指定日期，格式 YYYY-MM-DD")
     args = parser.parse_args()
     date_str = args.date
