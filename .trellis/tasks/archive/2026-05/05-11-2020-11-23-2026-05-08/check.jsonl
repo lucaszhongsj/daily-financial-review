@@ -1,0 +1,5 @@
+{"id": "c1", "title": "analysis JSON 完整性", "desc": "每个待处理日期都有对应的 data/analysis/YYYY-MM-DD.json"}
+{"id": "c2", "title": "analysis JSON 字段完整性", "desc": "每个 analysis JSON 包含 date、today_focus、market_comment、position_analysis、emotion_discipline、tomorrow_plan 6个字段"}
+{"id": "c3", "title": "Markdown 草稿完整性", "desc": "每个待处理日期都有对应的 src/content/reviews/YYYY-MM-DD.md"}
+{"id": "c4", "title": "Markdown 格式正确性", "desc": "Markdown 文件包含正确的 frontmatter、指数表格、基金表格和6个分析段落"}
+{"id": "c5", "title": "数据一致性", "desc": "analysis 中的分析与对应日期的 data/YYYY-MM-DD.json 数据一致，无虚构信息"}

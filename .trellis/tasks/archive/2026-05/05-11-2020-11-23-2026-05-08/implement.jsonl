@@ -1,0 +1,4 @@
+{"id": "1", "title": "确认批次列表", "desc": "运行 batch_analyze.py 生成待处理日期分组清单，确认范围、批次数量和每批日期", "files": ["scripts/batch_analyze.py"]}
+{"id": "2", "title": "逐批生成分析 JSON", "desc": "按倒序小批（每批5天）逐批读取 data/YYYY-MM-DD.json，生成 analysis 文本并保存到 data/analysis/。此步骤分多轮交互完成，每轮处理1批。", "files": ["data/", "data/analysis/"]}
+{"id": "3", "title": "生成复盘 Markdown 草稿", "desc": "所有 analysis JSON 生成完毕后，运行 generate_review.py 为每个日期生成 src/content/reviews/YYYY-MM-DD.md 草稿", "files": ["scripts/generate_review.py", "src/content/reviews/"]}
+{"id": "4", "title": "验证输出完整性", "desc": "统计待处理日期、已生成 analysis、已生成 Markdown 的数量，确保三者一致", "files": []}
