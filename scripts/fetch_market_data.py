@@ -14,8 +14,8 @@ from pathlib import Path
 import requests
 
 
-def load_positions(positions_file: str) -> dict:
-    """读取持仓 JSON"""
+def load_positions(positions_file: str) -> list[dict]:
+    """读取持仓 JSON（数组格式）"""
     path = Path(positions_file)
     if not path.is_absolute():
         path = Path(__file__).parent.parent / path
@@ -159,25 +159,26 @@ def fetch_fund_data(fund_codes: list[str]) -> list[dict]:
     return results
 
 
-def calculate_fund_pnl(positions: dict, fund_data: list[dict]) -> tuple[list[dict], float | None]:
+def calculate_fund_pnl(positions: list[dict], fund_data: list[dict]) -> tuple[list[dict], float | None]:
     """计算基金持仓盈亏"""
     nav_map = {f["code"]: f for f in fund_data}
     results = []
     total_cost = 0.0
     total_value = 0.0
 
-    for code, info in positions.items():
+    for item in positions:
+        code = item["code"]
         fd = nav_map.get(code)
         if not fd or fd.get("nav") is None:
             continue
 
-        trades = info.get("trades", [])
-        is_qdii = "QDII" in info.get("name", "")
+        trades = item.get("trades", [])
+        is_qdii = "QDII" in item.get("name", "")
 
         if not trades:
             results.append({
                 "code": code,
-                "name": info.get("name", fd.get("name", code)),
+                "name": item.get("name", fd.get("name", code)),
                 "nav": fd["nav"],
                 "nav_date": fd.get("nav_date"),
                 "change_pct": fd.get("change_pct"),
@@ -200,7 +201,7 @@ def calculate_fund_pnl(positions: dict, fund_data: list[dict]) -> tuple[list[dic
 
         results.append({
             "code": code,
-            "name": info.get("name", fd.get("name", code)),
+            "name": item.get("name", fd.get("name", code)),
             "nav": fd["nav"],
             "nav_date": fd.get("nav_date"),
             "change_pct": fd.get("change_pct"),
@@ -230,7 +231,7 @@ def main():
 
     index_codes = ["sh000001", "sz399001", "sz399006", "sh000688"]
 
-    fund_codes = list(positions.keys())
+    fund_codes = [p["code"] for p in positions]
 
     index_data = fetch_index_data(index_codes, date_str)
     fund_data = fetch_fund_data(fund_codes)
