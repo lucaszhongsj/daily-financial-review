@@ -73,6 +73,21 @@ def generate_review(data: dict) -> str:
     template = template.replace("<!-- INDICES_PLACEHOLDER -->", format_indices(data.get("indices", [])))
     template = template.replace("<!-- POSITIONS_PLACEHOLDER -->", format_funds(data.get("funds", []), data.get("total_pnl_pct")))
 
+    # 若 data 中存在 analysis 字段，直接嵌入分析内容
+    analysis = data.get("analysis", {})
+    # fallback：从 data/analysis/ 目录读取
+    if not analysis:
+        analysis_path = Path(__file__).parent.parent / "data" / "analysis" / f"{date_str}.json"
+        if analysis_path.exists():
+            with open(analysis_path, "r", encoding="utf-8") as f:
+                analysis = json.load(f)
+    if analysis:
+        template = template.replace("<!-- TODAY_FOCUS_PLACEHOLDER -->", analysis.get("today_focus", "<!-- TODAY_FOCUS_PLACEHOLDER -->"))
+        template = template.replace("<!-- MARKET_COMMENT_PLACEHOLDER -->", analysis.get("market_comment", "<!-- MARKET_COMMENT_PLACEHOLDER -->"))
+        template = template.replace("<!-- POSITION_ANALYSIS_PLACEHOLDER -->", analysis.get("position_analysis", "<!-- POSITION_ANALYSIS_PLACEHOLDER -->"))
+        template = template.replace("<!-- EMOTION_DISCIPLINE_PLACEHOLDER -->", analysis.get("emotion_discipline", "<!-- EMOTION_DISCIPLINE_PLACEHOLDER -->"))
+        template = template.replace("<!-- TOMORROW_PLAN_PLACEHOLDER -->", analysis.get("tomorrow_plan", "<!-- TOMORROW_PLAN_PLACEHOLDER -->"))
+
     return template
 
 
