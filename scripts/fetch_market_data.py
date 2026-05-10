@@ -6,7 +6,6 @@
 """
 import argparse
 import json
-import os
 import re
 import sys
 from datetime import datetime, timedelta
@@ -226,21 +225,10 @@ def main():
         print(f"{date_str} 非交易日，跳过")
         return
 
-    # 加载环境变量
-    env_path = Path(__file__).parent.parent / ".env.local"
-    if env_path.exists():
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), value.strip())
-
-    positions_file = os.environ.get("POSITIONS_FILE", "data/positions.json")
+    positions_file = "data/positions.json"
     positions = load_positions(positions_file)
 
-    indices_env = os.environ.get("INDICES", "sh000001,sz399001,sz399006,sh000688")
-    index_codes = [c.strip() for c in indices_env.split(",") if c.strip()]
+    index_codes = ["sh000001", "sz399001", "sz399006", "sh000688"]
 
     fund_codes = list(positions.keys())
 
