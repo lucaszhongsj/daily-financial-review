@@ -46,16 +46,20 @@ def main():
 
     content = review_file.read_text(encoding="utf-8")
 
+    # 处理命令行传入的转义换行
+    def unescape(val: str) -> str:
+        return val.replace("\\n", "\n")
+
     # 替换标题
     content = content.replace(f"title: 每日理财复盘 {args.date}", f'title: "{args.title}"')
 
     # 替换占位符
-    content = content.replace(PLACEHOLDERS["today_focus"], args.today_focus)
-    content = content.replace(PLACEHOLDERS["market_comment"], args.market_comment)
-    content = content.replace(PLACEHOLDERS["position_analysis"], args.position_analysis)
-    content = content.replace(PLACEHOLDERS["emotion_discipline"], args.emotion_discipline)
-    content = content.replace(PLACEHOLDERS["operations"], args.operations)
-    content = content.replace(PLACEHOLDERS["tomorrow_plan"], args.tomorrow_plan)
+    content = content.replace(PLACEHOLDERS["today_focus"], unescape(args.today_focus))
+    content = content.replace(PLACEHOLDERS["market_comment"], unescape(args.market_comment))
+    content = content.replace(PLACEHOLDERS["position_analysis"], unescape(args.position_analysis))
+    content = content.replace(PLACEHOLDERS["emotion_discipline"], unescape(args.emotion_discipline))
+    content = content.replace(PLACEHOLDERS["operations"], unescape(args.operations))
+    content = content.replace(PLACEHOLDERS["tomorrow_plan"], unescape(args.tomorrow_plan))
 
     # 去掉 draft
     content = content.replace("draft: true", "draft: false")
