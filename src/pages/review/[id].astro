@@ -6,15 +6,21 @@ import path from 'node:path';
 
 export async function getStaticPaths() {
   const reviews = await getCollection('reviews');
-  return reviews
+  const sorted = reviews
     .filter(r => !r.data.draft)
-    .map(review => ({
+    .sort((a, b) => a.data.date.localeCompare(b.data.date));
+
+  return sorted.map((review, i) => {
+    const prev = sorted[i - 1] || null;
+    const next = sorted[i + 1] || null;
+    return {
       params: { id: review.id },
-      props: { review },
-    }));
+      props: { review, prev, next },
+    };
+  });
 }
 
-const { review } = Astro.props;
+const { review, prev, next } = Astro.props;
 const { Content } = await render(review);
 
 // 读取 source 数据（指数 + 基金）
@@ -79,6 +85,72 @@ if (!sourceData) {
     sourceData = null;
   }
 }
+
+// 读取前后 30 天的数据用于趋势图
+const sourceDir = path.join(process.cwd(), 'data', 'source');
+const allSourceFiles = fs.existsSync(sourceDir)
+  ? fs.readdirSync(sourceDir).filter(f => f.endsWith('.json')).sort()
+  : [];
+
+const currentIdx = allSourceFiles.findIndex(f => f === `${review.data.date}.json`);
+const windowFiles = allSourceFiles.slice(
+  Math.max(0, currentIdx - 15),
+  Math.min(allSourceFiles.length, currentIdx + 16)
+);
+
+const trendData: { date: string; total_pnl_pct: number }[] = [];
+const fundTrendData: Map<string, { date: string; pnl_pct: number }[]> = new Map();
+
+for (const file of windowFiles) {
+  try {
+    const d = JSON.parse(fs.readFileSync(path.join(sourceDir, file), 'utf-8'));
+    if (typeof d.total_pnl_pct === 'number') {
+      trendData.push({ date: d.date, total_pnl_pct: d.total_pnl_pct });
+    }
+    for (const fund of d.funds || []) {
+      if (fund.pnl_pct !== undefined && fund.pnl_pct !== null) {
+        if (!fundTrendData.has(fund.name)) fundTrendData.set(fund.name, []);
+        fundTrendData.get(fund.name)!.push({ date: d.date, pnl_pct: fund.pnl_pct });
+      }
+    }
+  } catch {}
+}
+
+// SVG sparkline helper
+function sparklinePath(data: { pnl_pct: number }[], w: number, h: number) {
+  if (data.length < 2) return '';
+  const values = data.map(d => d.pnl_pct);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  return data.map((d, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((d.pnl_pct - min) / range) * h;
+    return `${i === 0 ? 'M' : 'L'}${x},${y}`;
+  }).join(' ');
+}
+
+// SVG trend chart helper
+function trendChartData(data: { date: string; total_pnl_pct: number }[], w: number, h: number, pad: number) {
+  if (data.length < 2) return null;
+  const values = data.map(d => d.total_pnl_pct);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const cw = w - pad * 2;
+  const ch = h - pad * 2;
+
+  const points = data.map((d, i) => {
+    const x = pad + (i / (data.length - 1)) * cw;
+    const y = pad + ch - ((d.total_pnl_pct - min) / range) * ch;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const zeroY = pad + ch - ((0 - min) / range) * ch;
+  return { points, zeroY, min, max, w, h, pad, cw, ch };
+}
+
+const overallTrend = trendChartData(trendData, 700, 180, 30);
 
 // 辅助函数
 function formatChange(val: number | null | undefined) {
@@ -228,9 +300,23 @@ const sections = [
               )}
             </div>
 
+            {/* Sparkline */}
+            {(() => {
+              const trend = fundTrendData.get(fund.name);
+              if (!trend || trend.length < 2) return null;
+              const d = sparklinePath(trend, 200, 32);
+              return (
+                <div class="mt-3">
+                  <svg viewBox="0 0 200 32" class="w-full h-8" preserveAspectRatio="none">
+                    <path d={d} fill="none" stroke={fund.pnl_pct! >= 0 ? 'var(--up)' : 'var(--down)'} stroke-width="1.5" stroke-linejoin="round" opacity="0.6" />
+                  </svg>
+                </div>
+              );
+            })()}
+
             {/* PnL progress bar */}
             {fund.pnl_pct !== undefined && fund.pnl_pct !== null && (
-              <div class="mt-3">
+              <div class="mt-2">
                 <div class="h-1.5 rounded-full overflow-hidden" style="background: var(--bg-elevated);">
                   <div
                     class={`h-full rounded-full transition-all duration-700 ${fund.pnl_pct >= 0 ? 'bg-[var(--up)]' : 'bg-[var(--down)]'}`}
@@ -242,6 +328,25 @@ const sections = [
           </div>
         ))}
       </div>
+
+      {/* Overall trend chart */}
+      {overallTrend && (
+        <div class="mt-4 rounded-lg p-4 bg-card">
+          <div class="text-xs mb-2" style="color: var(--text-muted);">近 {trendData.length} 日持仓盈亏趋势</div>
+          <svg viewBox={`0 0 ${overallTrend.w} ${overallTrend.h}`} class="w-full" style="min-width: 400px;">
+            {/* Zero line */}
+            <line x1={overallTrend.pad} y1={overallTrend.zeroY} x2={overallTrend.w - overallTrend.pad} y2={overallTrend.zeroY}
+              stroke="var(--text-muted)" stroke-width="0.5" stroke-dasharray="3,3" />
+            {/* Area */}
+            <polygon
+              points={`${overallTrend.pad},${overallTrend.zeroY} ${overallTrend.points} ${overallTrend.w - overallTrend.pad},${overallTrend.zeroY}`}
+              fill="rgba(245, 158, 11, 0.06)"
+            />
+            {/* Line */}
+            <polyline points={overallTrend.points} fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
+        </div>
+      )}
     </section>
   )}
 
@@ -285,4 +390,55 @@ const sections = [
       <Content />
     </div>
   </article>
+
+  {/* Timeline navigation */}
+  <nav class="mt-10 flex items-center justify-between gap-4 animate-fade-in-up animate-delay-5">
+    {prev ? (
+      <a
+        href={`/review/${prev.id}`}
+        class="group flex items-center gap-2 rounded-lg px-4 py-3 bg-card bg-card-hover transition-all flex-1"
+        data-nav="prev"
+      >
+        <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">上一日</div>
+          <div class="text-sm font-mono-num font-medium truncate" style="color: var(--text-primary);">{prev.data.date}</div>
+        </div>
+      </a>
+    ) : (
+      <div class="flex-1" />
+    )}
+
+    {next ? (
+      <a
+        href={`/review/${next.id}`}
+        class="group flex items-center gap-2 rounded-lg px-4 py-3 bg-card bg-card-hover transition-all flex-1 justify-end text-right"
+        data-nav="next"
+      >
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">下一日</div>
+          <div class="text-sm font-mono-num font-medium truncate" style="color: var(--text-primary);">{next.data.date}</div>
+        </div>
+        <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    ) : (
+      <div class="flex-1" />
+    )}
+  </nav>
+
+  <script>
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        const prev = document.querySelector('a[data-nav="prev"]') as HTMLAnchorElement | null;
+        if (prev) prev.click();
+      } else if (e.key === 'ArrowRight') {
+        const next = document.querySelector('a[data-nav="next"]') as HTMLAnchorElement | null;
+        if (next) next.click();
+      }
+    });
+  </script>
 </Layout>

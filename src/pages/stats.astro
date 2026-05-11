@@ -1,0 +1,295 @@
+---
+import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+interface DayData {
+  date: string;
+  total_pnl_pct?: number;
+  indices: Array<{ name: string; change_pct: number }>;
+  funds: Array<{ name: string; pnl_pct?: number; change_pct?: number }>;
+}
+
+const sourceDir = path.join(process.cwd(), 'data', 'source');
+const allData: DayData[] = [];
+
+if (fs.existsSync(sourceDir)) {
+  const files = fs.readdirSync(sourceDir).filter(f => f.endsWith('.json')).sort();
+  for (const file of files) {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(sourceDir, file), 'utf-8'));
+      allData.push({
+        date: data.date,
+        total_pnl_pct: data.total_pnl_pct,
+        indices: data.indices || [],
+        funds: data.funds || [],
+      });
+    } catch {}
+  }
+}
+
+// Overall PnL trend
+const pnlSeries = allData
+  .filter(d => typeof d.total_pnl_pct === 'number')
+  .map(d => ({ date: d.date, value: d.total_pnl_pct! }));
+
+// Fund names
+const fundNames = Array.from(new Set(
+  allData.flatMap(d => d.funds.map(f => f.name))
+)).sort();
+
+// Fund latest PnL
+const fundLatestPnl = fundNames.map(name => {
+  const latest = [...allData].reverse().find(d =>
+    d.funds.find(f => f.name === name && f.pnl_pct !== undefined)
+  );
+  const fund = latest?.funds.find(f => f.name === name);
+  return { name, value: fund?.pnl_pct ?? 0 };
+}).sort((a, b) => b.value - a.value);
+
+// Win/loss stats
+const pnlValues = pnlSeries.map(d => d.value);
+const winDays = pnlValues.filter(v => v > 0).length;
+const lossDays = pnlValues.filter(v => v < 0).length;
+const flatDays = pnlValues.filter(v => v === 0).length;
+const totalDays = pnlValues.length;
+
+// Index stats
+const indexChanges = allData.flatMap(d => d.indices.map(i => ({
+  name: i.name,
+  change: i.change_pct ?? 0,
+})));
+
+const indexStats = ['上证指数', '深证成指', '创业板指', '科创50'].map(name => {
+  const changes = indexChanges.filter(i => i.name === name).map(i => i.change);
+  return {
+    name,
+    up: changes.filter(c => c > 0).length,
+    down: changes.filter(c => c < 0).length,
+    flat: changes.filter(c => c === 0).length,
+    total: changes.length,
+    avg: changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : 0,
+    max: changes.length > 0 ? Math.max(...changes) : 0,
+    min: changes.length > 0 ? Math.min(...changes) : 0,
+  };
+});
+
+// SVG chart helpers
+function svgLineChart(data: { date: string; value: number }[], width: number, height: number, padding: number = 40) {
+  if (data.length === 0) return '';
+  const values = data.map(d => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const chartW = width - padding * 2;
+  const chartH = height - padding * 2;
+
+  const points = data.map((d, i) => {
+    const x = padding + (i / (data.length - 1)) * chartW;
+    const y = padding + chartH - ((d.value - min) / range) * chartH;
+    return `${x},${y}`;
+  }).join(' ');
+
+  // Zero line
+  const zeroY = padding + chartH - ((0 - min) / range) * chartH;
+
+  return { points, min, max, zeroY, width, height, padding, chartW, chartH };
+}
+
+function svgBarChart(data: { name: string; value: number }[], width: number, height: number, padding: number = 40) {
+  if (data.length === 0) return null;
+  const max = Math.max(...data.map(d => Math.abs(d.value))) || 1;
+  const chartW = width - padding * 2;
+  const chartH = height - padding * 2;
+  const barW = chartW / data.length * 0.6;
+  const step = chartW / data.length;
+
+  const bars = data.map((d, i) => {
+    const barH = (Math.abs(d.value) / max) * (chartH / 2);
+    const x = padding + i * step + (step - barW) / 2;
+    const y = d.value >= 0
+      ? padding + chartH / 2 - barH
+      : padding + chartH / 2;
+    return { x, y, w: barW, h: barH, value: d.value, name: d.name };
+  });
+
+  return { bars, max, width, height, padding, chartW, chartH, zeroY: padding + chartH / 2 };
+}
+
+const trendChart = svgLineChart(pnlSeries, 800, 280);
+const fundChart = svgBarChart(fundLatestPnl, 700, 240);
+---
+
+<Layout title="统计分析 · 每日理财复盘">
+  <a
+    href="/"
+    class="inline-flex items-center gap-1.5 text-sm mb-6 transition-colors hover:text-[var(--text-primary)]"
+    style="color: var(--text-muted);"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    返回首页
+  </a>
+
+  <h1 class="text-3xl sm:text-4xl font-bold font-serif-zh text-gradient-gold mb-8">
+    统计分析
+  </h1>
+
+  {/* Overview cards */}
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+    <div class="rounded-lg p-4 bg-card">
+      <div class="text-xs mb-1" style="color: var(--text-muted);">总交易日</div>
+      <div class="font-mono-num text-2xl font-bold" style="color: var(--text-primary);">{totalDays}</div>
+    </div>
+    <div class="rounded-lg p-4 bg-card">
+      <div class="text-xs mb-1" style="color: var(--text-muted);">盈利天数</div>
+      <div class="font-mono-num text-2xl font-bold text-up">{winDays}</div>
+      <div class="text-xs mt-0.5" style="color: var(--text-muted);">{totalDays > 0 ? ((winDays / totalDays) * 100).toFixed(1) : 0}%</div>
+    </div>
+    <div class="rounded-lg p-4 bg-card">
+      <div class="text-xs mb-1" style="color: var(--text-muted);">亏损天数</div>
+      <div class="font-mono-num text-2xl font-bold text-down">{lossDays}</div>
+      <div class="text-xs mt-0.5" style="color: var(--text-muted);">{totalDays > 0 ? ((lossDays / totalDays) * 100).toFixed(1) : 0}%</div>
+    </div>
+    <div class="rounded-lg p-4 bg-card">
+      <div class="text-xs mb-1" style="color: var(--text-muted);">平局天数</div>
+      <div class="font-mono-num text-2xl font-bold" style="color: var(--text-primary);">{flatDays}</div>
+    </div>
+  </section>
+
+  {/* Overall PnL trend */}
+  {trendChart && (
+    <section class="mb-10">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-1.5 h-5 rounded-full" style="background: var(--accent);"></div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">
+          持仓盈亏趋势
+        </h2>
+      </div>
+      <div class="rounded-lg p-4 bg-card overflow-x-auto">
+        <svg viewBox={`0 0 ${trendChart.width} ${trendChart.height}`} class="w-full" style="min-width: 600px;">
+          {/* Grid lines */}
+          {Array.from({ length: 5 }, (_, i) => {
+            const y = trendChart.padding + (i / 4) * trendChart.chartH;
+            return (
+              <line x1={trendChart.padding} y1={y} x2={trendChart.width - trendChart.padding} y2={y}
+                stroke="var(--border)" stroke-width="0.5" stroke-dasharray="2,2" />
+            );
+          })}
+
+          {/* Zero line */}
+          <line x1={trendChart.padding} y1={trendChart.zeroY} x2={trendChart.width - trendChart.padding} y2={trendChart.zeroY}
+            stroke="var(--text-muted)" stroke-width="0.5" />
+
+          {/* Area fill */}
+          <polygon
+            points={`${trendChart.padding},${trendChart.zeroY} ${trendChart.points} ${trendChart.width - trendChart.padding},${trendChart.zeroY}`}
+            fill="rgba(245, 158, 11, 0.08)"
+          />
+
+          {/* Line */}
+          <polyline points={trendChart.points} fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" />
+
+          {/* Start/end labels */}
+          <text x={trendChart.padding} y={trendChart.padding - 8} font-size="10" fill="var(--text-muted)" font-family="var(--font-mono)">
+            {pnlSeries[0]?.date}
+          </text>
+          <text x={trendChart.width - trendChart.padding} y={trendChart.padding - 8} font-size="10" fill="var(--text-muted)" text-anchor="end" font-family="var(--font-mono)">
+            {pnlSeries[pnlSeries.length - 1]?.date}
+          </text>
+          <text x={trendChart.padding} y={trendChart.height - 8} font-size="10" fill="var(--text-muted)" font-family="var(--font-mono)">
+            min: {trendChart.min.toFixed(2)}%
+          </text>
+          <text x={trendChart.width - trendChart.padding} y={trendChart.height - 8} font-size="10" fill="var(--text-muted)" text-anchor="end" font-family="var(--font-mono)">
+            max: {trendChart.max.toFixed(2)}%
+          </text>
+        </svg>
+      </div>
+    </section>
+  )}
+
+  {/* Fund comparison */}
+  {fundChart && (
+    <section class="mb-10">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-1.5 h-5 rounded-full" style="background: var(--accent);"></div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">
+          基金累计收益对比
+        </h2>
+      </div>
+      <div class="rounded-lg p-4 bg-card overflow-x-auto">
+        <svg viewBox={`0 0 ${fundChart.width} ${fundChart.height}`} class="w-full" style="min-width: 500px;">
+          {/* Zero line */}
+          <line x1={fundChart.padding} y1={fundChart.zeroY} x2={fundChart.width - fundChart.padding} y2={fundChart.zeroY}
+            stroke="var(--text-muted)" stroke-width="0.5" />
+
+          {fundChart.bars.map((bar, i) => (
+            <g>
+              <rect
+                x={bar.x} y={bar.y} width={bar.w} height={bar.h}
+                rx="2"
+                fill={bar.value >= 0 ? 'var(--up)' : 'var(--down)'}
+                opacity="0.7"
+              />
+              <text
+                x={bar.x + bar.w / 2} y={bar.value >= 0 ? bar.y - 4 : bar.y + bar.h + 12}
+                font-size="9" text-anchor="middle" fill="var(--text-secondary)"
+                font-family="var(--font-mono)"
+              >
+                {bar.value >= 0 ? '+' : ''}{bar.value.toFixed(1)}%
+              </text>
+              <text
+                x={bar.x + bar.w / 2} y={fundChart.height - 8}
+                font-size="8" text-anchor="middle" fill="var(--text-muted)"
+                font-family="var(--font-serif)"
+              >
+                {bar.name.split(/[（(]/)[0].slice(0, 6)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </section>
+  )}
+
+  {/* Index stats table */}
+  <section class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="w-1.5 h-5 rounded-full" style="background: var(--accent);"></div>
+      <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">
+        指数涨跌统计
+      </h2>
+    </div>
+    <div class="rounded-lg overflow-hidden bg-card">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <th class="text-left px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">指数</th>
+              <th class="text-right px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">上涨天数</th>
+              <th class="text-right px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">下跌天数</th>
+              <th class="text-right px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">平均涨跌</th>
+              <th class="text-right px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">最大涨幅</th>
+              <th class="text-right px-4 py-3 text-xs uppercase tracking-wider" style="color: var(--text-muted);">最大跌幅</th>
+            </tr>
+          </thead>
+          <tbody>
+            {indexStats.map((idx, i) => (
+              <tr style="border-bottom: 1px solid var(--border);" class="hover:bg-[var(--bg-card-hover)] transition-colors">
+                <td class="px-4 py-3 font-medium" style="color: var(--text-primary);">{idx.name}</td>
+                <td class="px-4 py-3 text-right font-mono-num text-up">{idx.up}</td>
+                <td class="px-4 py-3 text-right font-mono-num text-down">{idx.down}</td>
+                <td class={`px-4 py-3 text-right font-mono-num ${idx.avg >= 0 ? 'text-up' : 'text-down'}`}>
+                  {idx.avg >= 0 ? '+' : ''}{idx.avg.toFixed(2)}%
+                </td>
+                <td class="px-4 py-3 text-right font-mono-num text-up">+{idx.max.toFixed(2)}%</td>
+                <td class="px-4 py-3 text-right font-mono-num text-down">{idx.min.toFixed(2)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</Layout>

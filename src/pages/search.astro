@@ -1,0 +1,224 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import fs from 'node:fs';
+import path from 'node:path';
+
+interface SearchItem {
+  id: string;
+  date: string;
+  title: string;
+  total_pnl_pct?: number;
+  today_focus?: string;
+  market_comment?: string;
+  position_analysis?: string;
+  emotion_discipline?: string;
+  tomorrow_plan?: string;
+  indices: string[];
+  funds: string[];
+}
+
+const reviews = await getCollection('reviews');
+const published = reviews.filter(r => !r.data.draft);
+
+const searchIndex: SearchItem[] = [];
+
+for (const review of published) {
+  const date = review.data.date;
+  let item: SearchItem = {
+    id: review.id,
+    date,
+    title: review.data.title,
+    indices: [],
+    funds: [],
+  };
+
+  // Read source data
+  try {
+    const sourceFile = path.join(process.cwd(), 'data', 'source', `${date}.json`);
+    if (fs.existsSync(sourceFile)) {
+      const data = JSON.parse(fs.readFileSync(sourceFile, 'utf-8'));
+      item.total_pnl_pct = data.total_pnl_pct;
+      item.indices = (data.indices || []).map((i: any) => `${i.name} ${i.change_pct}%`);
+      item.funds = (data.funds || []).map((f: any) => `${f.name} ${f.pnl_pct ?? 0}%`);
+    }
+  } catch {}
+
+  // Read analysis data
+  try {
+    const analysisFile = path.join(process.cwd(), 'data', 'analysis', `${date}.json`);
+    if (fs.existsSync(analysisFile)) {
+      const data = JSON.parse(fs.readFileSync(analysisFile, 'utf-8'));
+      item.today_focus = data.today_focus;
+      item.market_comment = data.market_comment;
+      item.position_analysis = data.position_analysis;
+      item.emotion_discipline = data.emotion_discipline;
+      item.tomorrow_plan = data.tomorrow_plan;
+    }
+  } catch {}
+
+  searchIndex.push(item);
+}
+
+// Sort by date desc
+searchIndex.sort((a, b) => b.date.localeCompare(a.date));
+
+const indexJson = JSON.stringify(searchIndex);
+---
+
+<Layout title="搜索 · 每日理财复盘">
+  <a
+    href="/"
+    class="inline-flex items-center gap-1.5 text-sm mb-6 transition-colors hover:text-[var(--text-primary)]"
+    style="color: var(--text-muted);"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    返回首页
+  </a>
+
+  <h1 class="text-3xl sm:text-4xl font-bold font-serif-zh text-gradient-gold mb-8">
+    搜索复盘
+  </h1>
+
+  {/* Search input */}
+  <div class="mb-6">
+    <div class="relative">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="输入关键词、日期或基金名称..."
+        class="w-full rounded-lg pl-10 pr-4 py-3 text-sm bg-card focus:outline-none focus:border-[var(--accent)] transition-colors"
+        style="color: var(--text-primary); border: 1px solid var(--border);"
+        autocomplete="off"
+      />
+    </div>
+  </div>
+
+  {/* Filters */}
+  <div class="flex flex-wrap gap-3 mb-6">
+    <select
+      id="pnlFilter"
+      class="rounded-lg px-3 py-2 text-xs bg-card focus:outline-none"
+      style="color: var(--text-secondary); border: 1px solid var(--border);"
+    >
+      <option value="">全部盈亏</option>
+      <option value="win">盈利日</option>
+      <option value="loss">亏损日</option>
+    </select>
+
+    <select
+      id="sortFilter"
+      class="rounded-lg px-3 py-2 text-xs bg-card focus:outline-none"
+      style="color: var(--text-secondary); border: 1px solid var(--border);"
+    >
+      <option value="date-desc">日期倒序</option>
+      <option value="date-asc">日期正序</option>
+      <option value="pnl-desc">盈亏从高到低</option>
+      <option value="pnl-asc">盈亏从低到高</option>
+    </select>
+  </div>
+
+  {/* Results count */}
+  <div id="resultCount" class="text-xs mb-4" style="color: var(--text-muted);">
+    共 {searchIndex.length} 条记录
+  </div>
+
+  {/* Results */}
+  <div id="results" class="space-y-3">
+    {searchIndex.map(item => (
+      <a
+        href={`/review/${item.id}`}
+        class="group block rounded-lg p-4 transition-all duration-200 bg-card bg-card-hover"
+        data-search-item
+        data-keywords={`${item.date} ${item.title} ${item.today_focus ?? ''} ${item.market_comment ?? ''} ${item.position_analysis ?? ''} ${item.emotion_discipline ?? ''} ${item.tomorrow_plan ?? ''} ${item.indices.join(' ')} ${item.funds.join(' ')}`}
+        data-pnl={item.total_pnl_pct ?? ''}
+        data-date={item.date}
+      >
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <div class="flex items-center gap-3">
+            <span class="font-mono-num text-sm font-medium" style="color: var(--accent);">{item.date}</span>
+            <span class="text-sm font-medium" style="color: var(--text-primary);">{item.title}</span>
+          </div>
+          {typeof item.total_pnl_pct === 'number' && (
+            <span class={`font-mono-num text-sm font-bold ${item.total_pnl_pct >= 0 ? 'text-up' : 'text-down'}`}>
+              {item.total_pnl_pct >= 0 ? '+' : ''}{item.total_pnl_pct.toFixed(2)}%
+            </span>
+          )}
+        </div>
+        {item.today_focus && (
+          <p class="text-xs line-clamp-2" style="color: var(--text-secondary);">{item.today_focus}</p>
+        )}
+      </a>
+    ))}
+  </div>
+
+  <div id="noResults" class="hidden text-center py-16" style="color: var(--text-muted);">
+    <p>未找到匹配的记录</p>
+  </div>
+
+  <script is:inline define:vars={{ indexJson }}>
+    const searchInput = document.getElementById('searchInput');
+    const pnlFilter = document.getElementById('pnlFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const resultsContainer = document.getElementById('results');
+    const resultCount = document.getElementById('resultCount');
+    const noResults = document.getElementById('noResults');
+
+    const items = Array.from(document.querySelectorAll('[data-search-item]'));
+
+    function doSearch() {
+      const query = (searchInput?.value || '').toLowerCase().trim();
+      const pnlMode = pnlFilter?.value || '';
+      const sortMode = sortFilter?.value || 'date-desc';
+
+      let visible = items.filter(el => {
+        const keywords = (el.getAttribute('data-keywords') || '').toLowerCase();
+        const pnlStr = el.getAttribute('data-pnl') || '';
+        const pnl = pnlStr ? parseFloat(pnlStr) : null;
+
+        const matchQuery = !query || keywords.includes(query);
+        let matchPnl = true;
+        if (pnlMode === 'win') matchPnl = pnl !== null && pnl > 0;
+        if (pnlMode === 'loss') matchPnl = pnl !== null && pnl < 0;
+
+        return matchQuery && matchPnl;
+      });
+
+      // Sort
+      visible.sort((a, b) => {
+        if (sortMode === 'date-desc') return b.getAttribute('data-date')!.localeCompare(a.getAttribute('data-date')!);
+        if (sortMode === 'date-asc') return a.getAttribute('data-date')!.localeCompare(b.getAttribute('data-date')!);
+        if (sortMode === 'pnl-desc') {
+          const pa = parseFloat(a.getAttribute('data-pnl') || '0');
+          const pb = parseFloat(b.getAttribute('data-pnl') || '0');
+          return pb - pa;
+        }
+        if (sortMode === 'pnl-asc') {
+          const pa = parseFloat(a.getAttribute('data-pnl') || '0');
+          const pb = parseFloat(b.getAttribute('data-pnl') || '0');
+          return pa - pb;
+        }
+        return 0;
+      });
+
+      // Render
+      items.forEach(el => (el as HTMLElement).style.display = 'none');
+      visible.forEach(el => {
+        (el as HTMLElement).style.display = 'block';
+        resultsContainer?.appendChild(el);
+      });
+
+      resultCount!.textContent = `共 ${visible.length} 条记录`;
+      noResults!.classList.toggle('hidden', visible.length > 0);
+    }
+
+    searchInput?.addEventListener('input', doSearch);
+    pnlFilter?.addEventListener('change', doSearch);
+    sortFilter?.addEventListener('change', doSearch);
+  </script>
+</Layout>
