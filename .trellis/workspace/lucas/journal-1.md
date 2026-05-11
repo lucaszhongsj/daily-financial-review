@@ -72,3 +72,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 重命名数据目录 daily → source
+
+**Date**: 2026-05-11
+**Task**: 重命名数据目录 daily → source
+**Branch**: `master`
+
+### Summary
+
+将原始数据目录从 data/daily/ 重命名为 data/source/，更准确表达原始源数据含义，与 data/analysis/（派生分析）形成清晰对比。更新 .gitignore 和 7 个脚本的路径引用。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0251f02` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
