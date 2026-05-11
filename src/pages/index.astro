@@ -8,48 +8,122 @@ const sortedReviews = publishedReviews.sort((a, b) =>
   b.data.date.localeCompare(a.data.date)
 );
 const latest = sortedReviews[0];
+const totalCount = sortedReviews.length;
+
+// Extract year-month for grouping
+function getYearMonth(dateStr: string) {
+  return dateStr.slice(0, 7);
+}
+
+const reviewsByMonth = new Map<string, typeof sortedReviews>();
+for (const review of sortedReviews) {
+  const ym = getYearMonth(review.data.date);
+  if (!reviewsByMonth.has(ym)) reviewsByMonth.set(ym, []);
+  reviewsByMonth.get(ym)!.push(review);
+}
+const sortedMonths = Array.from(reviewsByMonth.keys()).sort((a, b) => b.localeCompare(a));
 ---
 
 <Layout title="每日理财复盘">
-  <h1 class="text-3xl font-bold mb-8 text-slate-900">每日理财复盘</h1>
-
-  {
-    latest && (
-      <section class="mb-10">
-        <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          最新复盘
-        </h2>
-        <a
-          href={`/review/${latest.id}`}
-          class="block bg-white rounded-lg shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div class="text-lg font-semibold text-slate-900">{latest.data.title}</div>
-          <div class="text-sm text-slate-500 mt-1">{latest.data.date}</div>
-        </a>
-      </section>
-    )
-  }
-
-  <section>
-    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
-      历史复盘
-    </h2>
-    {sortedReviews.length === 0 ? (
-      <p class="text-slate-500">暂无已发布的复盘记录。</p>
-    ) : (
-      <ul class="space-y-3">
-        {sortedReviews.map(review => (
-          <li>
-            <a
-              href={`/review/${review.id}`}
-              class="flex items-center justify-between bg-white rounded-lg shadow-sm border border-slate-200 px-5 py-4 hover:shadow-md transition-shadow"
-            >
-              <span class="font-medium text-slate-800">{review.data.title}</span>
-              <span class="text-sm text-slate-500">{review.data.date}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
+  {/* Hero */}
+  <section class="mb-12 animate-fade-in-up">
+    <h1 class="text-4xl sm:text-5xl font-black font-serif-zh text-gradient-gold mb-3 tracking-tight">
+      每日理财复盘
+    </h1>
+    <p class="text-base sm:text-lg" style="color: var(--text-secondary);">
+      记录投资思考，坚守交易纪律
+    </p>
+    {totalCount > 0 && (
+      <div class="mt-4 flex items-center gap-4 text-sm" style="color: var(--text-muted);">
+        <span>累计 <span class="font-mono-num font-semibold" style="color: var(--text-primary);">{totalCount}</span> 篇复盘</span>
+        <span>·</span>
+        <span>{sortedReviews[sortedReviews.length - 1]?.data.date} 至 {latest?.data.date}</span>
+      </div>
     )}
   </section>
+
+  {/* Latest review */}
+  {latest && (
+    <section class="mb-14 animate-fade-in-up animate-delay-1">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-1.5 h-5 rounded-full" style="background: var(--accent);"></div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">
+          最新复盘
+        </h2>
+      </div>
+
+      <a
+        href={`/review/${latest.id}`}
+        class="group block relative overflow-hidden rounded-xl p-6 sm:p-8 transition-all duration-300"
+        style="background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-elevated) 100%); border: 1px solid var(--border);"
+      >
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background: radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 60%);"></div>
+        <div class="relative">
+          <div class="flex items-baseline gap-3 mb-2">
+            <span class="font-mono-num text-2xl font-bold" style="color: var(--accent);">
+              {latest.data.date}
+            </span>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold font-serif-zh" style="color: var(--text-primary);">
+            {latest.data.title}
+          </h3>
+          <div class="mt-4 flex items-center gap-2 text-sm" style="color: var(--text-muted);">
+            <span>阅读全文</span>
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+    </section>
+  )}
+
+  {/* Historical reviews by month */}
+  {sortedMonths.length > 0 && (
+    <section class="animate-fade-in-up animate-delay-2">
+      <div class="flex items-center gap-2 mb-6">
+        <div class="w-1.5 h-5 rounded-full" style="background: var(--text-muted);"></div>
+        <h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">
+          历史复盘
+        </h2>
+      </div>
+
+      {sortedMonths.map((month, mi) => (
+        <div class="mb-8">
+          <h3 class="text-xs font-mono-num font-semibold uppercase tracking-wider mb-3 pl-1" style="color: var(--text-muted);">
+            {month.replace('-', '年')}月
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {reviewsByMonth.get(month)!.map((review, ri) => (
+              <a
+                href={`/review/${review.id}`}
+                class="group block rounded-lg p-4 transition-all duration-200 bg-card bg-card-hover"
+                style={`animation: fade-in-up 0.4s ease-out ${(mi * 0.05 + ri * 0.03).toFixed(2)}s forwards; opacity: 0;`}
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <div class="font-mono-num text-xs font-medium mb-1" style="color: var(--text-muted);">
+                      {review.data.date}
+                    </div>
+                    <div class="text-sm font-medium truncate" style="color: var(--text-primary);">
+                      {review.data.title}
+                    </div>
+                  </div>
+                  <svg class="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5 -translate-x-1" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  )}
+
+  {sortedReviews.length === 0 && (
+    <div class="text-center py-20" style="color: var(--text-muted);">
+      <p class="text-lg">暂无已发布的复盘记录</p>
+    </div>
+  )}
 </Layout>

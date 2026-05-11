@@ -1,1 +1,264 @@
 @import "tailwindcss";
+
+/* ============================================================
+   CSS Variables — Dark Financial Terminal Theme
+   ============================================================ */
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-base: #0b0f19;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2236;
+    --bg-elevated: #161f32;
+
+    /* Text */
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-inverse: #0f172a;
+
+    /* A-share colors: red = up, green = down */
+    --up: #ef4444;
+    --up-dim: #fca5a5;
+    --up-bg: rgba(239, 68, 68, 0.12);
+    --down: #22c55e;
+    --down-dim: #86efac;
+    --down-bg: rgba(34, 197, 94, 0.12);
+
+    /* Accent */
+    --accent: #f59e0b;
+    --accent-dim: #fcd34d;
+    --accent-bg: rgba(245, 158, 11, 0.12);
+
+    /* Border */
+    --border: rgba(148, 163, 184, 0.1);
+    --border-strong: rgba(148, 163, 184, 0.2);
+
+    /* Font families */
+    --font-serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  }
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-serif);
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@layer base {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+}
+
+/* ============================================================
+   Utility classes
+   ============================================================ */
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+  }
+
+  .animate-delay-1 { animation-delay: 0.05s; }
+  .animate-delay-2 { animation-delay: 0.1s; }
+  .animate-delay-3 { animation-delay: 0.15s; }
+  .animate-delay-4 { animation-delay: 0.2s; }
+  .animate-delay-5 { animation-delay: 0.25s; }
+
+  .font-serif-zh {
+    font-family: var(--font-serif);
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+
+  .bg-card-hover:hover {
+    background-color: var(--bg-card-hover);
+    border-color: var(--border-strong);
+  }
+
+  .border-subtle {
+    border-color: var(--border);
+  }
+
+  /* A-share color utilities */
+  .text-up {
+    color: var(--up);
+  }
+  .text-down {
+    color: var(--down);
+  }
+  .bg-up {
+    background-color: var(--up-bg);
+  }
+  .bg-down {
+    background-color: var(--down-bg);
+  }
+}
+
+/* ============================================================
+   Prose overrides for rendered Markdown
+   ============================================================ */
+@layer components {
+  .prose {
+    color: var(--text-secondary);
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose h5,
+  .prose h6 {
+    color: var(--text-primary);
+    font-family: var(--font-serif);
+    font-weight: 600;
+  }
+
+  .prose h2 {
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .prose p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+
+  .prose strong {
+    color: var(--text-primary);
+  }
+
+  .prose ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose li {
+    margin-bottom: 0.25rem;
+  }
+
+  /* Tables */
+  .prose table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .prose thead {
+    display: none; /* Hide raw table headers, use card grid instead */
+  }
+
+  .prose tbody tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .prose tbody tr:hover {
+    background-color: var(--bg-card-hover);
+    border-color: var(--border-strong);
+  }
+
+  .prose tbody td {
+    border: none;
+    padding: 0;
+  }
+
+  .prose tbody td:first-child {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .prose tbody td:last-child {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  /* Color-code change percentages in prose tables */
+  .prose tbody td {
+    font-family: var(--font-mono);
+  }
+
+  /* Reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
