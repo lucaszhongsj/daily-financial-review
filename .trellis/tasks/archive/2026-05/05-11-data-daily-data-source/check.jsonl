@@ -1,0 +1,3 @@
+{"id": "c1", "title": "目录存在", "desc": "data/source/ 存在且包含 1321 个文件"}
+{"id": "c2", "title": "脚本路径正确", "desc": "grep -r 'data/daily' scripts/ 无结果"}
+{"id": "c3", "title": "脚本可运行", "desc": "generate_review.py --date 可正常读取数据"}
