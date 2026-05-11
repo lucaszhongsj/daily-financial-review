@@ -1,4 +1,0 @@
-{"id": "1", "title": "重命名目录", "desc": "git mv data/daily data/source", "files": ["data/"]}
-{"id": "2", "title": "更新脚本路径", "desc": "全局替换所有脚本中的 data/daily/ 为 data/source/", "files": ["scripts/"]}
-{"id": "3", "title": "更新 gitignore", "desc": "data/daily/*.json → data/source/*.json", "files": [".gitignore"]}
-{"id": "4", "title": "验证", "desc": "运行 generate_review.py 抽样验证", "files": []}
