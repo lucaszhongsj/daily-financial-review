@@ -1,7 +1,7 @@
 ---
 title: <!-- TITLE_PLACEHOLDER -->
 date: <!-- DATE_PLACEHOLDER -->
-draft: true
+draft: false
 ---
 
 ## 大盘指数
