@@ -43,6 +43,14 @@ def main():
 
         if result.returncode != 0:
             print(f"  失败：{date_str} - {result.stderr.strip()}")
+            continue
+
+        # 将 draft: true 改为 draft: false（历史数据直接发布）
+        md_path = review_dir / f"{date_str}.md"
+        if md_path.exists():
+            content = md_path.read_text(encoding="utf-8")
+            content = content.replace("draft: true", "draft: false")
+            md_path.write_text(content, encoding="utf-8")
 
         if i % 100 == 0 or i == total:
             print(f"  进度：{i}/{total} ({i/total*100:.1f}%)")
