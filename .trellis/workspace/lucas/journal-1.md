@@ -39,3 +39,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: data 目录结构化重构
+
+**Date**: 2026-05-11
+**Task**: data 目录结构化重构
+**Branch**: `master`
+
+### Summary
+
+将 1321 个原始日期 JSON 文件从 data/ 根目录移至 data/daily/，建立 data/daily/（原始数据）与 data/analysis/（分析结果）的清晰分层。更新 .gitignore 和 7 个脚本的路径引用，确保所有读写操作指向正确位置。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d1bc7b4` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
