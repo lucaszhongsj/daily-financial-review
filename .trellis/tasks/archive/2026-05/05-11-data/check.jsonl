@@ -1,0 +1,4 @@
+{"id": "c1", "title": "文件移动完整性", "desc": "所有 1321 个日期 JSON 已移至 data/daily/，data/ 根目录无残留日期文件"}
+{"id": "c2", "title": "脚本路径正确性", "desc": "所有脚本能正确读写 data/daily/ 下的文件"}
+{"id": "c3", "title": "Git 追踪状态", "desc": "git status 无未追踪的 data/daily/ 文件，原 data/*.json 显示为 rename"}
+{"id": "c4", "title": "gitignore 有效性", "desc": "data/daily/*.json 被忽略，data/analysis/ 和 data/historical_nav/ 被追踪"}

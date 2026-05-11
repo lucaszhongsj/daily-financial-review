@@ -1,0 +1,4 @@
+{"id": "1", "title": "移动数据文件到新目录", "desc": "创建 data/daily/ 目录，将所有 data/YYYY-MM-DD.json 用 git mv 移入，保留 Git 历史记录", "files": ["data/"]}
+{"id": "2", "title": "修改脚本路径引用", "desc": "逐一修改 9 个脚本中涉及 data/*.json 的路径，统一指向 data/daily/", "files": ["scripts/"]}
+{"id": "3", "title": "更新 .gitignore", "desc": "将 data/*.json 改为 data/daily/*.json，确保 analysis/ 和 historical_nav/ 继续被追踪", "files": [".gitignore"]}
+{"id": "4", "title": "验证脚本可运行", "desc": "运行 batch_analyze.py 和 generate_review.py 抽样验证路径正确", "files": []}
