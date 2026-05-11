@@ -107,7 +107,7 @@ def main():
     print(f"日期范围：{start_date} ~ {end_date}")
     print(f"共 {len(target_dates)} 个交易日")
 
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "data" / "daily"
     data_dir.mkdir(exist_ok=True)
 
     generated = 0

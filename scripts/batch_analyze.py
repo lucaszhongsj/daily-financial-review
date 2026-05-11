@@ -27,7 +27,7 @@ def load_existing_analysis(date_str: str) -> dict | None:
 
 def get_pending_dates(start_date: str | None, end_date: str | None, reverse: bool = False) -> list[str]:
     """获取所有待处理日期（按时间顺序或倒序）。"""
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "data" / "daily"
     all_dates = []
 
     for f in sorted(data_dir.glob("[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].json")):

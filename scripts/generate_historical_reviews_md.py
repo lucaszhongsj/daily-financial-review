@@ -229,7 +229,7 @@ def main():
     parser.add_argument("--force", action="store_true", help="覆盖已有复盘")
     args = parser.parse_args()
 
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "data" / "daily"
     review_dir = Path(__file__).parent.parent / "src" / "content" / "reviews"
     review_dir.mkdir(parents=True, exist_ok=True)
 

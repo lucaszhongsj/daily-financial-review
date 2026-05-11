@@ -9,7 +9,7 @@ node_modules/
 .env.local
 
 # 原始数据和生成图表（可能含敏感信息）
-data/*.json
+data/daily/*.json
 public/charts/*.png
 public/charts/*.svg
 

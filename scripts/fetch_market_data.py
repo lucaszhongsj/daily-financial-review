@@ -256,7 +256,7 @@ def main():
     fund_data = fetch_fund_data(fund_codes)
     fund_pnl, total_pnl_pct = calculate_fund_pnl(positions, fund_data)
 
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "data" / "daily"
     data_dir.mkdir(exist_ok=True)
     output = {
         "date": date_str,

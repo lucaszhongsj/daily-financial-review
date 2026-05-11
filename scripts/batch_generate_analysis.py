@@ -250,7 +250,7 @@ def generate_tomorrow_plan(data, market_type):
 
 
 def analyze_date(date_str: str) -> dict | None:
-    data_file = Path("data") / f"{date_str}.json"
+    data_file = Path("data") / "daily" / f"{date_str}.json"
     if not data_file.exists():
         return None
 

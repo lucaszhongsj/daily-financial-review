@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--force", action="store_true", help="强制重新拉取")
     args = parser.parse_args()
 
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(__file__).parent.parent / "data" / "daily"
 
     # 1. 拉取所有指数数据
     all_index_records = []
