@@ -24,6 +24,7 @@
     "trades": [
       {
         "date": "2026-04-15",
+        "type": "buy",
         "shares": 1724.36,
         "nav": 1.1580
       }
@@ -36,6 +37,7 @@
     "trades": [
       {
         "date": "2026-04-15",
+        "type": "buy",
         "shares": 1325.38,
         "nav": 1.5090
       }
@@ -45,6 +47,25 @@
     "code": "161725",
     "name": "招商中证白酒指数(LOF)A",
     "type": "fund",
-    "trades": []
+    "trades": [
+      {
+        "date": "2026-04-15",
+        "type": "buy",
+        "shares": 100.00,
+        "nav": 1.0000
+      },
+      {
+        "date": "2026-04-16",
+        "type": "sell",
+        "shares": 50.00,
+        "nav": 1.1000
+      },
+      {
+        "date": "2026-04-17",
+        "type": "dividend",
+        "shares": 10.00,
+        "nav": 0
+      }
+    ]
   }
 ]

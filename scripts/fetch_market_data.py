@@ -189,10 +189,29 @@ def calculate_fund_pnl(positions: list[dict], fund_data: list[dict]) -> tuple[li
             })
             continue
 
-        total_shares = sum(t["shares"] for t in trades)
-        total_invest = sum(t["shares"] * t["nav"] for t in trades)
-        avg_cost = total_invest / total_shares if total_shares > 0 else 0
+        # 按时间正序遍历，维护加权平均成本
+        sorted_trades = sorted(trades, key=lambda t: t["date"])
+        total_shares = 0.0
+        total_invest = 0.0
 
+        for t in sorted_trades:
+            trade_type = t.get("type", "buy")
+            shares = float(t["shares"])
+            nav = float(t.get("nav", 0))
+
+            if trade_type == "buy":
+                total_shares += shares
+                total_invest += shares * nav
+            elif trade_type == "sell":
+                if total_shares > 0:
+                    avg_cost = total_invest / total_shares
+                    total_shares -= shares
+                    total_invest -= shares * avg_cost
+            elif trade_type == "dividend":
+                total_shares += shares
+                # 分红送份额不改变总成本
+
+        avg_cost = total_invest / total_shares if total_shares > 0 else 0
         market_value = total_shares * fd["nav"]
         pnl_pct = round((fd["nav"] - avg_cost) / avg_cost * 100, 2) if avg_cost > 0 else 0
 

@@ -1,6 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export async function getStaticPaths() {
   const reviews = await getCollection('reviews');
@@ -14,6 +16,18 @@ export async function getStaticPaths() {
 
 const { review } = Astro.props;
 const { Content } = await render(review);
+
+// 尝试读取 data/*.json 中的 analysis 字段
+let aiAnalysis = null;
+try {
+  const dataFile = path.join(process.cwd(), 'data', `${review.data.date}.json`);
+  if (fs.existsSync(dataFile)) {
+    const data = JSON.parse(fs.readFileSync(dataFile, 'utf-8'));
+    aiAnalysis = data.analysis || null;
+  }
+} catch {
+  aiAnalysis = null;
+}
 ---
 
 <Layout title={review.data.title}>
@@ -23,6 +37,44 @@ const { Content } = await render(review);
   <article class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 md:p-8">
     <h1 class="text-2xl font-bold text-slate-900 mb-2">{review.data.title}</h1>
     <div class="text-sm text-slate-500 mb-6">{review.data.date}</div>
+
+    {
+      aiAnalysis && (
+        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-indigo-600 text-base">🤖</span>
+            <span class="text-sm font-semibold text-indigo-800">AI 分析摘要</span>
+          </div>
+          <div class="space-y-2 text-sm text-indigo-900">
+            {aiAnalysis.today_focus && (
+              <p>
+                <span class="font-medium">今日关注：</span>
+                {aiAnalysis.today_focus}
+              </p>
+            )}
+            {aiAnalysis.market_comment && (
+              <p>
+                <span class="font-medium">大盘点评：</span>
+                {aiAnalysis.market_comment}
+              </p>
+            )}
+            {aiAnalysis.position_analysis && (
+              <p>
+                <span class="font-medium">持仓分析：</span>
+                {aiAnalysis.position_analysis}
+              </p>
+            )}
+            {aiAnalysis.emotion_discipline && (
+              <p>
+                <span class="font-medium">情绪与纪律：</span>
+                {aiAnalysis.emotion_discipline}
+              </p>
+            )}
+          </div>
+        </div>
+      )
+    }
+
     <div class="prose prose-slate max-w-none">
       <Content />
     </div>
