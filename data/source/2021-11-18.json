@@ -1,0 +1,103 @@
+{
+  "date": "2021-11-18",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2021-11-18",
+      "open": 3531.492,
+      "close": 3520.711,
+      "high": 3537.976,
+      "low": 3513.114,
+      "change_pct": -0.47
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2021-11-18",
+      "open": 14685.785,
+      "close": 14579.167,
+      "high": 14685.785,
+      "low": 14555.224,
+      "change_pct": -0.9
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2021-11-18",
+      "open": 3416.643,
+      "close": 3383.906,
+      "high": 3416.643,
+      "low": 3374.011,
+      "change_pct": -1.09
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2021-11-18",
+      "open": 1433.508,
+      "close": 1423.97,
+      "high": 1433.508,
+      "low": 1419.44,
+      "change_pct": -0.85
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 3.255,
+      "nav_date": "2021-11-18",
+      "change_pct": -2.08,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": false
+    },
+    {
+      "code": "011103",
+      "name": "天弘中证光伏产业指数C",
+      "nav": 1.4146,
+      "nav_date": "2021-11-18",
+      "change_pct": -0.99,
+      "avg_cost": 1.4647,
+      "pnl_pct": -3.42,
+      "shares": 682.73,
+      "is_qdii": false
+    },
+    {
+      "code": "013188",
+      "name": "华夏能源革新股票C",
+      "nav": 4.017,
+      "nav_date": "2021-11-18",
+      "change_pct": 1.36,
+      "avg_cost": 4.144,
+      "pnl_pct": -3.06,
+      "shares": 241.31,
+      "is_qdii": false
+    },
+    {
+      "code": "118001",
+      "name": "易方达亚洲精选股票(QDII)",
+      "nav": 1.187,
+      "nav_date": "2021-11-18",
+      "change_pct": -2.22,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": true
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 1.314,
+      "nav_date": "2021-11-18",
+      "change_pct": 0.14,
+      "avg_cost": 1.3549,
+      "pnl_pct": -3.02,
+      "shares": 5634.51,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": -3.07
+}

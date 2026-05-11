@@ -1,0 +1,92 @@
+{
+  "date": "2021-07-22",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2021-07-22",
+      "open": 3563.661,
+      "close": 3574.734,
+      "high": 3576.473,
+      "low": 3558.293,
+      "change_pct": 0.34
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2021-07-22",
+      "open": 15258.729,
+      "close": 15262.188,
+      "high": 15290.056,
+      "low": 15172.104,
+      "change_pct": 0.33
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2021-07-22",
+      "open": 3572.435,
+      "close": 3544.436,
+      "high": 3576.119,
+      "low": 3512.718,
+      "change_pct": -0.44
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2021-07-22",
+      "open": 1570.488,
+      "close": 1582.132,
+      "high": 1583.155,
+      "low": 1553.723,
+      "change_pct": 1.05
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 3.965,
+      "nav_date": "2021-07-22",
+      "change_pct": -3.01,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": false
+    },
+    {
+      "code": "011103",
+      "name": "天弘中证光伏产业指数C",
+      "nav": 1.2489,
+      "nav_date": "2021-07-22",
+      "change_pct": 2.32,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": false
+    },
+    {
+      "code": "118001",
+      "name": "易方达亚洲精选股票(QDII)",
+      "nav": 1.3,
+      "nav_date": "2021-07-22",
+      "change_pct": 0.93,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": true
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 1.4665,
+      "nav_date": "2021-07-22",
+      "change_pct": -1.95,
+      "avg_cost": 1.5172,
+      "pnl_pct": -3.34,
+      "shares": 2446.21,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": -3.34
+}

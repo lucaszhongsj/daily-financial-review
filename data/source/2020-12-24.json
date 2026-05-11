@@ -1,0 +1,81 @@
+{
+  "date": "2020-12-24",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2020-12-24",
+      "open": 3382.193,
+      "close": 3363.113,
+      "high": 3394.075,
+      "low": 3354.022,
+      "change_pct": -0.57
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2020-12-24",
+      "open": 13998.358,
+      "close": 13915.574,
+      "high": 14048.618,
+      "low": 13867.66,
+      "change_pct": -0.71
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2020-12-24",
+      "open": 2838.938,
+      "close": 2820.753,
+      "high": 2848.337,
+      "low": 2811.928,
+      "change_pct": -0.78
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2020-12-24",
+      "open": 1378.384,
+      "close": 1348.013,
+      "high": 1381.917,
+      "low": 1348.013,
+      "change_pct": -2.08
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 3.312,
+      "nav_date": "2020-12-24",
+      "change_pct": 0.79,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": false
+    },
+    {
+      "code": "118001",
+      "name": "易方达亚洲精选股票(QDII)",
+      "nav": 1.464,
+      "nav_date": "2020-12-24",
+      "change_pct": -1.68,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": true
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 1.3219,
+      "nav_date": "2020-12-24",
+      "change_pct": -1.91,
+      "avg_cost": 1.2059,
+      "pnl_pct": 9.62,
+      "shares": 828.41,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": 9.62
+}

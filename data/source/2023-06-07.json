@@ -1,0 +1,114 @@
+{
+  "date": "2023-06-07",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2023-06-07",
+      "open": 3197.468,
+      "close": 3197.759,
+      "high": 3210.33,
+      "low": 3188.005,
+      "change_pct": 0.08
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2023-06-07",
+      "open": 10783.311,
+      "close": 10708.822,
+      "high": 10799.465,
+      "low": 10681.476,
+      "change_pct": -0.6
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2023-06-07",
+      "open": 2159.163,
+      "close": 2129.898,
+      "high": 2162.564,
+      "low": 2124.525,
+      "change_pct": -1.61
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2023-06-07",
+      "open": 1023.95,
+      "close": 1019.051,
+      "high": 1025.174,
+      "low": 1015.835,
+      "change_pct": -0.38
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 2.0361,
+      "nav_date": "2023-06-07",
+      "change_pct": -0.65,
+      "avg_cost": 2.7549,
+      "pnl_pct": -26.09,
+      "shares": 4355.87,
+      "is_qdii": false
+    },
+    {
+      "code": "011103",
+      "name": "天弘中证光伏产业指数C",
+      "nav": 0.9336,
+      "nav_date": "2023-06-07",
+      "change_pct": -1.32,
+      "avg_cost": 1.1941,
+      "pnl_pct": -21.82,
+      "shares": 3768.49,
+      "is_qdii": false
+    },
+    {
+      "code": "013188",
+      "name": "华夏能源革新股票C",
+      "nav": 2.683,
+      "nav_date": "2023-06-07",
+      "change_pct": -1.36,
+      "avg_cost": 3.3254,
+      "pnl_pct": -19.32,
+      "shares": 902.15,
+      "is_qdii": false
+    },
+    {
+      "code": "118001",
+      "name": "易方达亚洲精选股票(QDII)",
+      "nav": 1.015,
+      "nav_date": "2023-06-07",
+      "change_pct": 0.2,
+      "avg_cost": 1.158,
+      "pnl_pct": -12.35,
+      "shares": 1724.36,
+      "is_qdii": true
+    },
+    {
+      "code": "015945",
+      "name": "易方达国防军工混合C",
+      "nav": 1.474,
+      "nav_date": "2023-06-07",
+      "change_pct": -0.81,
+      "avg_cost": null,
+      "pnl_pct": null,
+      "shares": null,
+      "is_qdii": false
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 1.0068,
+      "nav_date": "2023-06-07",
+      "change_pct": -1.54,
+      "avg_cost": 1.1296,
+      "pnl_pct": -10.87,
+      "shares": 1972.72,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": -21.84
+}

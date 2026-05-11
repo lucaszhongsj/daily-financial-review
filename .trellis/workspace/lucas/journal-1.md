@@ -105,3 +105,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: 归档历史数据脚本
+
+**Date**: 2026-05-11
+**Task**: 归档历史数据脚本
+**Branch**: `master`
+
+### Summary
+
+将 6 个历史数据拉取/处理/早期批量脚本移入 scripts/archive/，根目录保留 5 个活跃脚本。清理目录结构，提升日常可读性。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `69e8eea` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

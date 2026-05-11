@@ -1,0 +1,103 @@
+{
+  "date": "2026-05-08",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2026-05-08",
+      "open": 4163.8537,
+      "close": 4179.9524,
+      "high": 4183.0631,
+      "low": 4154.2456,
+      "change_pct": -0.0
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2026-05-08",
+      "open": 15520.381,
+      "close": 15563.797,
+      "high": 15639.388,
+      "low": 15466.838,
+      "change_pct": -0.5
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2026-05-08",
+      "open": 3792.042,
+      "close": 3796.128,
+      "high": 3840.156,
+      "low": 3787.174,
+      "change_pct": -0.96
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2026-05-08",
+      "open": 1653.3108,
+      "close": 1640.4603,
+      "high": 1655.5715,
+      "low": 1625.608,
+      "change_pct": -2.29
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 1.6572,
+      "nav_date": "2026-05-08",
+      "change_pct": -2.72,
+      "avg_cost": 2.7549,
+      "pnl_pct": -39.85,
+      "shares": 4355.87,
+      "is_qdii": false
+    },
+    {
+      "code": "011103",
+      "name": "天弘中证光伏产业指数C",
+      "nav": 0.9227,
+      "nav_date": "2026-05-08",
+      "change_pct": -0.35,
+      "avg_cost": 1.1441,
+      "pnl_pct": -19.35,
+      "shares": 4807.45,
+      "is_qdii": false
+    },
+    {
+      "code": "013188",
+      "name": "华夏能源革新股票C",
+      "nav": 3.64,
+      "nav_date": "2026-05-08",
+      "change_pct": -1.41,
+      "avg_cost": 3.3254,
+      "pnl_pct": 9.46,
+      "shares": 902.15,
+      "is_qdii": false
+    },
+    {
+      "code": "015945",
+      "name": "易方达国防军工混合C",
+      "nav": 2.119,
+      "nav_date": "2026-05-08",
+      "change_pct": 0.33,
+      "avg_cost": 1.509,
+      "pnl_pct": 40.42,
+      "shares": 1325.38,
+      "is_qdii": false
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 0.6159,
+      "nav_date": "2026-05-08",
+      "change_pct": -0.48,
+      "avg_cost": 1.0316,
+      "pnl_pct": -40.3,
+      "shares": 3128.43,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": -23.53
+}

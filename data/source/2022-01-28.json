@@ -1,0 +1,103 @@
+{
+  "date": "2022-01-28",
+  "indices": [
+    {
+      "code": "sh000001",
+      "name": "上证指数",
+      "date": "2022-01-28",
+      "open": 3407.593,
+      "close": 3361.44,
+      "high": 3417.045,
+      "low": 3356.556,
+      "change_pct": -0.97
+    },
+    {
+      "code": "sz399001",
+      "name": "深证成指",
+      "date": "2022-01-28",
+      "open": 13515.466,
+      "close": 13328.056,
+      "high": 13553.222,
+      "low": 13227.833,
+      "change_pct": -0.53
+    },
+    {
+      "code": "sz399006",
+      "name": "创业板指",
+      "date": "2022-01-28",
+      "open": 2945.718,
+      "close": 2908.945,
+      "high": 2962.769,
+      "low": 2882.674,
+      "change_pct": 0.08
+    },
+    {
+      "code": "sh000688",
+      "name": "科创50",
+      "date": "2022-01-28",
+      "open": 1253.942,
+      "close": 1229.224,
+      "high": 1253.942,
+      "low": 1229.224,
+      "change_pct": -0.91
+    }
+  ],
+  "funds": [
+    {
+      "code": "003096",
+      "name": "中欧医疗健康混合C",
+      "nav": 2.544,
+      "nav_date": "2022-01-28",
+      "change_pct": -0.51,
+      "avg_cost": 3.0537,
+      "pnl_pct": -16.69,
+      "shares": 2456.08,
+      "is_qdii": false
+    },
+    {
+      "code": "011103",
+      "name": "天弘中证光伏产业指数C",
+      "nav": 1.1812,
+      "nav_date": "2022-01-28",
+      "change_pct": -1.49,
+      "avg_cost": 1.4647,
+      "pnl_pct": -19.36,
+      "shares": 682.73,
+      "is_qdii": false
+    },
+    {
+      "code": "013188",
+      "name": "华夏能源革新股票C",
+      "nav": 3.456,
+      "nav_date": "2022-01-28",
+      "change_pct": -0.63,
+      "avg_cost": 4.144,
+      "pnl_pct": -16.6,
+      "shares": 241.31,
+      "is_qdii": false
+    },
+    {
+      "code": "118001",
+      "name": "易方达亚洲精选股票(QDII)",
+      "nav": 1.088,
+      "nav_date": "2022-01-28",
+      "change_pct": -0.73,
+      "avg_cost": 1.158,
+      "pnl_pct": -6.04,
+      "shares": 1724.36,
+      "is_qdii": true
+    },
+    {
+      "code": "161725",
+      "name": "招商中证白酒指数(LOF)A",
+      "nav": 1.1632,
+      "nav_date": "2022-01-28",
+      "change_pct": -3.17,
+      "avg_cost": 1.3128,
+      "pnl_pct": -11.4,
+      "shares": 175.47,
+      "is_qdii": false
+    }
+  ],
+  "total_pnl_pct": -14.99
+}
