@@ -23,7 +23,7 @@ def get_target_date(now=None) -> str:
 
 def load_data(date_str: str) -> dict:
     data_dir = Path(__file__).parent.parent / "data"
-    data_file = data_dir / "daily" / f"{date_str}.json"
+    data_file = data_dir / "source" / f"{date_str}.json"
     if not data_file.exists():
         print(f"数据文件不存在：{data_file}", file=sys.stderr)
         sys.exit(1)
